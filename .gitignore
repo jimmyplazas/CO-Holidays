@@ -1,0 +1,56 @@
+# Android specific
+.gradle
+build/
+captures/
+.externalNativeBuild/
+.idea/
+*.iml
+*.hprof
+.cxx/
+
+# MacOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+
+# Gradle files
+.gradle/
+!gradle/wrapper/gradle-wrapper.properties
+!gradle-wrapper.jar
+gradle-app.setting
+# gradle.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Keystore files
+*.jks
+*.keystore
+
+# Android Studio & IntelliJ IDEA
+*.iws
+*.ipr
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.war
+
+# Kotlin specific
+*.kotlin_metadata
+*.kotlin_module
+
+# Misc
+*.tmp
+*.swp
+*.swo
+*.swn
+*.bak
+*.orig
+*.patch
+
+# Other
+*.env
+*.secret
