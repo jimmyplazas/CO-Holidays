@@ -57,9 +57,11 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     // Ktor
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.core)
+    implementation(libs.ktor.android)
+    implementation(libs.ktor.content.negotiation)
+    implementation(libs.ktor.serialization.json)
+    implementation(libs.ktor.logging)
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
