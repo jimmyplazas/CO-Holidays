@@ -4,4 +4,5 @@
     <string name="today_is_not_holiday">Today is not holiday</string>
     <string name="upcoming_holiday">Upcoming holiday is on</string>
     <string name="for_description">for</string>
+    <string name="all_holidays">All holidays</string>
 </resources>
