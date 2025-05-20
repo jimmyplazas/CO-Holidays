@@ -13,47 +13,73 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
+import dev.alejo.compose_calendar.CalendarEvent
+import dev.alejo.compose_calendar.ComposeCalendar
+import dev.alejo.compose_calendar.util.CalendarDefaults
+import kotlinx.datetime.LocalDate
 import java.util.Locale
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(state: HomeState) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
+    //val scaffoldState = rememberBottomSheetScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        rememberStandardBottomSheetState(
+            initialValue = SheetValue.Expanded
+        )
+    )
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val maxSheetHeight = screenHeight - AppDimens.PeakSheetTopMargin
+    val locale = remember { Locale.getDefault() }
+    val isSpanish = locale.language == "es"
 
     Box(Modifier.fillMaxSize()) {
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
             sheetContent = {
-                BottomSheetContent(Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = maxSheetHeight))
+                BottomSheetContent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = maxSheetHeight),
+                    state = state,
+                    isSpanish = isSpanish
+                )
             },
             sheetPeekHeight = AppDimens.DefaultPeekHeight
         ) {
@@ -78,7 +104,7 @@ fun HomeScreen(state: HomeState) {
                 )
                 AnimatedContent(state.isDataLoaded) { isDataLoaded ->
                     if (isDataLoaded) {
-                        MainContent(state)
+                        MainContent(state, isSpanish)
                     } else {
                         CircularProgressIndicator()
                     }
@@ -89,23 +115,23 @@ fun HomeScreen(state: HomeState) {
 }
 
 @Composable
-fun MainContent(state: HomeState) {
-    val locale = remember { Locale.getDefault() }
-    val isEnglish = locale.language == "en"
+fun MainContent(state: HomeState, isSpanish: Boolean) {
 
     val mainText = when {
-        state.todayHoliday == null -> if (isEnglish) "Today is not holiday" else "Hoy no es festivo"
-        isEnglish -> state.todayHoliday.name
-        else -> state.todayHoliday.localName
+        state.todayHoliday == null -> stringResource(R.string.today_is_not_holiday)
+        isSpanish -> state.todayHoliday.localName
+        else -> state.todayHoliday.name
     }
 
     Column(
-        modifier = Modifier.wrapContentSize().padding(horizontal = AppDimens.Default),
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(horizontal = AppDimens.Default),
         verticalArrangement = Arrangement.spacedBy(AppDimens.Default)
     ) {
         if (state.todayHoliday != null) {
             Text(
-                text = if (isEnglish) "Today is holiday" else "Hoy es festivo",
+                text = stringResource(R.string.today_is_holiday),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.SemiBold,
@@ -113,7 +139,14 @@ fun MainContent(state: HomeState) {
                 color = Color.White
             )
         }
-        MainText(text = mainText)
+        Text(
+            text = mainText,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+        )
         AnimatedVisibility(state.nextHoliday != null) {
             state.nextHoliday?.let { nextHoliday ->
                 val nextHolidayMessage = DateUtils.getNextHolidayMessage(nextHoliday)
@@ -131,27 +164,56 @@ fun MainContent(state: HomeState) {
 }
 
 @Composable
-fun MainText(text: String) {
-    Text(
-        text = text,
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        fontSize = 32.sp,
-        fontWeight = FontWeight.ExtraBold,
-        color = Color.White
-    )
+fun BottomSheetContent(modifier: Modifier, state: HomeState, isSpanish: Boolean) {
+    Box(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = AppDimens.Default),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.Small)
+        ) {
+            Box(Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.all_holidays),
+                    modifier = Modifier.align(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(AppDimens.Small)),
+                    onClick = {}
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Calendar(state, isSpanish)
+        }
+    }
 }
 
 @Composable
-fun BottomSheetContent(modifier: Modifier) {
-    Box(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = "Bottom sheet content",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+fun Calendar(state: HomeState, isSpanish: Boolean) {
+    val events: List<CalendarEvent> = state.holidays.map { holiday ->
+        CalendarEvent(
+            title = if (isSpanish) holiday.localName else holiday.name,
+            description = null,
+            date = LocalDate.parse(holiday.date),
+            icon = Icons.Default.Star
+        )
     }
+    ComposeCalendar(
+        events = events,
+        calendarColors = CalendarDefaults.calendarColors(
+            eventBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            eventContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        onDayClick = { _, _ -> }
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -159,7 +221,7 @@ fun BottomSheetContent(modifier: Modifier) {
 fun HomeScreenPreview() {
     val holidays = listOf(
         PublicHolidayModel(
-            date = "2025,01,01",
+            date = "2025-05-05",
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -167,7 +229,7 @@ fun HomeScreenPreview() {
             types = listOf("Public")
         ),
         PublicHolidayModel(
-            date = "2025,04,01",
+            date = "2025-04-01",
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -175,7 +237,7 @@ fun HomeScreenPreview() {
             types = listOf("Public")
         ),
         PublicHolidayModel(
-            date = "2025,07,25",
+            date = "2025-07-25",
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -183,27 +245,29 @@ fun HomeScreenPreview() {
             types = listOf("Public")
         )
     )
-    HomeScreen(state = HomeState(
-        holidays = holidays,
-        nextHoliday = PublicHolidayModel(
-            date = "2025,01,01",
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
-        ),
-        isLoadingNextHoliday = false,
-        isLoadingHolidays = false,
-        isLoadingTodayHoliday = false,
-        isDataLoaded = true,
-        todayHoliday = PublicHolidayModel(
-            date = "2025,05,20",
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
+    HomeScreen(
+        state = HomeState(
+            holidays = holidays,
+            nextHoliday = PublicHolidayModel(
+                date = "2025-01-01",
+                name = "New Year",
+                localName = "Año Nuevo",
+                global = true,
+                launchYear = 2025,
+                types = listOf("Public")
+            ),
+            isLoadingNextHoliday = false,
+            isLoadingHolidays = false,
+            isLoadingTodayHoliday = false,
+            isDataLoaded = true,
+            todayHoliday = PublicHolidayModel(
+                date = "2025-05-20",
+                name = "New Year",
+                localName = "Año Nuevo",
+                global = true,
+                launchYear = 2025,
+                types = listOf("Public")
+            )
         )
-    ))
+    )
 }
