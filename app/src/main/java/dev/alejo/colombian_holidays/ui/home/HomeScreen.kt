@@ -16,17 +16,14 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,24 +43,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
+import dev.alejo.colombian_holidays.ui.home.components.CalendarScreen
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
-import dev.alejo.compose_calendar.CalendarEvent
-import dev.alejo.compose_calendar.ComposeCalendar
-import dev.alejo.compose_calendar.util.CalendarDefaults
-import kotlinx.datetime.LocalDate
 import java.util.Locale
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(state: HomeState) {
-    //val scaffoldState = rememberBottomSheetScaffoldState()
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        rememberStandardBottomSheetState(
-            initialValue = SheetValue.Expanded
-        )
-    )
+fun HomeScreen(state: HomeState, onPreviousMonth: () -> Unit, onNextMonth: () -> Unit) {
+    val scaffoldState = rememberBottomSheetScaffoldState()
+//    val scaffoldState = rememberBottomSheetScaffoldState(
+//        rememberStandardBottomSheetState(
+//            initialValue = SheetValue.Expanded
+//        )
+//    )
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val maxSheetHeight = screenHeight - AppDimens.PeakSheetTopMargin
     val locale = remember { Locale.getDefault() }
@@ -78,7 +72,9 @@ fun HomeScreen(state: HomeState) {
                         .fillMaxWidth()
                         .heightIn(max = maxSheetHeight),
                     state = state,
-                    isSpanish = isSpanish
+                    isSpanish = isSpanish,
+                    onPreviousMonth = { onPreviousMonth() },
+                    onNextMonth = { onNextMonth() }
                 )
             },
             sheetPeekHeight = AppDimens.DefaultPeekHeight
@@ -116,7 +112,6 @@ fun HomeScreen(state: HomeState) {
 
 @Composable
 fun MainContent(state: HomeState, isSpanish: Boolean) {
-
     val mainText = when {
         state.todayHoliday == null -> stringResource(R.string.today_is_not_holiday)
         isSpanish -> state.todayHoliday.localName
@@ -164,56 +159,49 @@ fun MainContent(state: HomeState, isSpanish: Boolean) {
 }
 
 @Composable
-fun BottomSheetContent(modifier: Modifier, state: HomeState, isSpanish: Boolean) {
+fun BottomSheetContent(
+    modifier: Modifier,
+    state: HomeState,
+    isSpanish: Boolean,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
     Box(modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = AppDimens.Default),
-            verticalArrangement = Arrangement.spacedBy(AppDimens.Small)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = AppDimens.Default),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.Default)
         ) {
-            Box(Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.all_holidays),
-                    modifier = Modifier.align(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .clip(RoundedCornerShape(AppDimens.Small)),
-                    onClick = {}
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            Calendar(state, isSpanish)
+            BottomSheetTop()
+            CalendarScreen(state, isSpanish, onPreviousMonth, onNextMonth)
         }
     }
 }
 
 @Composable
-fun Calendar(state: HomeState, isSpanish: Boolean) {
-    val events: List<CalendarEvent> = state.holidays.map { holiday ->
-        CalendarEvent(
-            title = if (isSpanish) holiday.localName else holiday.name,
-            description = null,
-            date = LocalDate.parse(holiday.date),
-            icon = Icons.Default.Star
+fun BottomSheetTop() {
+    Box(Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.all_holidays),
+            modifier = Modifier.align(Alignment.Center),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
         )
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .clip(RoundedCornerShape(AppDimens.Small)),
+            onClick = {}
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
-    ComposeCalendar(
-        events = events,
-        calendarColors = CalendarDefaults.calendarColors(
-            eventBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-            eventContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
-        onDayClick = { _, _ -> }
-    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -268,6 +256,8 @@ fun HomeScreenPreview() {
                 launchYear = 2025,
                 types = listOf("Public")
             )
-        )
+        ),
+        onPreviousMonth = {},
+        onNextMonth = {}
     )
 }
