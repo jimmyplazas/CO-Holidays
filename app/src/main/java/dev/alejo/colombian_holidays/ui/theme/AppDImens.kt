@@ -7,6 +7,6 @@ object AppDimens {
     val Default = 16.dp
     val Large = 24.dp
     val ExtraLarge = 32.dp
-    val DefaultPeekHeight = 90.dp
+    val DefaultPeekHeight = 120.dp
     val PeakSheetTopMargin = 120.dp
 }
