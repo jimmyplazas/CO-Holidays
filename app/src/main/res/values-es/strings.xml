@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="today_is_holiday">Hoy es festivo</string>
+    <string name="today_is_not_holiday">Hoy no es festivo</string>
+    <string name="upcoming_holiday">El próximo festivo es el</string>
+    <string name="for_description">para</string>
+</resources>
