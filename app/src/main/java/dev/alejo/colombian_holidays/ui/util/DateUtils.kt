@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
+import kotlinx.datetime.number
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -30,5 +31,11 @@ object DateUtils {
                 "${stringResource(R.string.upcoming_holiday)} $formattedDate ${stringResource(R.string.for_description)} ${nextHoliday.name}"
             }
         }
+    }
+
+    fun formatToMonthAbbreviation(date: LocalDate, locale: Locale): String {
+        val javaDate = LocalDate.of(date.year, date.month.number, date.dayOfMonth)
+        val formatter = DateTimeFormatter.ofPattern("EEE", locale)
+        return formatter.format(javaDate).replaceFirstChar { it.uppercase(locale) }
     }
 }
