@@ -16,5 +16,5 @@ object ImagesProvider {
         R.drawable.img_9
     )
 
-    fun getImagesList() = imagesList
+    fun getImages() = imagesList
 }
