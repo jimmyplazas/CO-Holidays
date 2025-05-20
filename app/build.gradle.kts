@@ -76,6 +76,9 @@ dependencies {
     ksp(libs.room.compiler)
     // Google Fonts
     implementation(libs.androidx.ui.text.google.fonts)
+    // Compose Calendar
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.compose.calendar)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
