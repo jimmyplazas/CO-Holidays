@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">ColombianHolidaysNew</string>
+    <string name="app_name" translatable="false">ColombianHolidays</string>
+    <string name="today_is_holiday">Today is holiday</string>
+    <string name="today_is_not_holiday">Today is not holiday</string>
+    <string name="upcoming_holiday">Upcoming holiday is on</string>
+    <string name="for_description">for</string>
 </resources>
