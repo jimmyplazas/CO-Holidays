@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-private const val BASE_URL = "https://date.nager.at/api/v3/"
+private const val BASE_URL = "date.nager.at/api/v3"
 
 val dataModule = module {
     single {
