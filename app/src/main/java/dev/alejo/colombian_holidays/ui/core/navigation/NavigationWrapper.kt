@@ -24,7 +24,11 @@ fun NavigationWrapper(navController: NavHostController) {
                 }
             }
 
-            HomeScreen(state)
+            HomeScreen(
+                state = state,
+                onPreviousMonth = viewModel::previousMonth,
+                onNextMonth = viewModel::nextMonth
+            )
         }
     }
 }
