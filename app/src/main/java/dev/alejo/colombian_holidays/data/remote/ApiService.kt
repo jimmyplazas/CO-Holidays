@@ -1,0 +1,20 @@
+package dev.alejo.colombian_holidays.data.remote
+
+import dev.alejo.colombian_holidays.data.remote.response.PublicHolidayResponse
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+
+private const val COLOMBIA_CODE = "CO"
+
+class ApiService(private val client: HttpClient) {
+    suspend fun isTodayHoliday(): HttpResponse = client
+        .get("IsTodayPublicHoliday/$COLOMBIA_CODE")
+
+    suspend fun getHolidaysByYear(year: String): List<PublicHolidayResponse> = client
+        .get("PublicHolidays/${year}/$COLOMBIA_CODE").body()
+
+    suspend fun getNextPublicHoliday(): List<PublicHolidayResponse> = client
+        .get("NextPublicHolidays/$COLOMBIA_CODE").body()
+}
