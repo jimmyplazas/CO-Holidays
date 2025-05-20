@@ -42,7 +42,7 @@ class HomeViewModel(
         }
     }
 
-    fun getHolidaysByYear(year: String) {
+    private fun getHolidaysByYear(year: String, isPrevious: Boolean = false, isNext: Boolean = false) {
         viewModelScope.launch {
             when (val response = repository.getHolidaysByYear(year)) {
                 is Response.Error -> {
@@ -59,8 +59,15 @@ class HomeViewModel(
                         if(response.data.isNotEmpty() && _state.value.todayHoliday == null) {
                             setTodayHoliday()
                         }
+                        val newYears = response.data.map { LocalDate.parse(it.date).year }.toSet()
+                        val holidaysData = when {
+                            isPrevious -> response.data + _state.value.holidays
+                            isNext -> _state.value.holidays + response.data
+                            else -> response.data
+                        }
                         currentState.copy(
-                            holidays = response.data,
+                            holidays = holidaysData,
+                            loadedYears = _state.value.loadedYears + newYears,
                             isLoadingHolidays = false
                         )
                     }
@@ -135,6 +142,43 @@ class HomeViewModel(
             currentState.copy(
                 isDataLoaded = true
             )
+        }
+    }
+
+    fun previousMonth() {
+        val currentMonthUpdated = _state.value.currentMonth.minusMonths(1)
+
+        _state.update { currentState ->
+            currentState.copy(currentMonth = currentMonthUpdated)
+        }
+
+        val shouldLoadPreviousYear = currentMonthUpdated.month.value in 1..3
+        if (shouldLoadPreviousYear) {
+            val previousYear = currentMonthUpdated.year - 1
+            if (previousYear !in _state.value.loadedYears) {
+                getHolidaysByYear(
+                    year = previousYear.toString(),
+                    isPrevious = true
+                )
+            }
+        }
+    }
+
+    fun nextMonth() {
+        val currentMonthUpdated = _state.value.currentMonth.plusMonths(1)
+
+        _state.update { currentState ->
+            currentState.copy(currentMonth = currentMonthUpdated)
+        }
+        val shouldLoadNextYear = currentMonthUpdated.month.value in 10..12
+        if (shouldLoadNextYear) {
+            val nextYear = currentMonthUpdated.year + 1
+            if (nextYear !in _state.value.loadedYears) {
+                getHolidaysByYear(
+                    year = nextYear.toString(),
+                    isNext = true
+                )
+            }
         }
     }
 
