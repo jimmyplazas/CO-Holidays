@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
-import kotlinx.datetime.number
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -13,7 +12,7 @@ object DateUtils {
     @Composable
     fun getNextHolidayMessage(nextHoliday: PublicHolidayModel): String {
         val locale = Locale.getDefault()
-        val date = LocalDate.parse(nextHoliday.date)
+        val date = nextHoliday.date
 
         return when (locale.language) {
             "es" -> {
@@ -26,16 +25,16 @@ object DateUtils {
 
             else -> {
                 val formattedDate = date.format(
-                    DateTimeFormatter.ofPattern("EEEE, MMM d", Locale("en"))
+                    DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.ENGLISH)
                 )
+
                 "${stringResource(R.string.upcoming_holiday)} $formattedDate ${stringResource(R.string.for_description)} ${nextHoliday.name}"
             }
         }
     }
 
-    fun formatToMonthAbbreviation(date: LocalDate, locale: Locale): String {
-        val javaDate = LocalDate.of(date.year, date.month.number, date.dayOfMonth)
+    fun formatToDayAbbreviation(date: LocalDate, locale: Locale): String {
         val formatter = DateTimeFormatter.ofPattern("EEE", locale)
-        return formatter.format(javaDate).replaceFirstChar { it.uppercase(locale) }
+        return formatter.format(date).replaceFirstChar { it.uppercase(locale) }
     }
 }
