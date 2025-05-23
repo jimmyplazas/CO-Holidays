@@ -8,8 +8,13 @@ import dev.alejo.colombian_holidays.domain.repository.AppPreferencesRepository
 import dev.alejo.colombian_holidays.domain.repository.Repository
 import dev.alejo.colombian_holidays.domain.usecase.ChangeBackgroundUseCase
 import dev.alejo.colombian_holidays.ui.util.ImagesProvider
+import dev.alejo.compose_calendar.CalendarEvent
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -20,14 +25,33 @@ class HomeViewModel(
     private val repository: Repository,
     private val imagesProvider: ImagesProvider
 ) : ViewModel() {
+
+    sealed class HolidayLoadTarget {
+        data object Initial : HolidayLoadTarget()
+        data object PreviousYear : HolidayLoadTarget()
+        data object NextYear : HolidayLoadTarget()
+    }
+
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
+    val events: StateFlow<List<CalendarEvent<PublicHolidayModel>>> = _state
+        .map { state ->
+            state.holidays.map { holiday ->
+                CalendarEvent(
+                    data = holiday,
+                    date = holiday.date
+                )
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptyList()
+        )
 
     init {
         checkBackgroundImage()
         getHolidaysByYear(LocalDate.now().year.toString())
-        getNextHoliday()
-        getIsTodayHoliday()
     }
 
     private fun checkBackgroundImage() {
@@ -42,7 +66,10 @@ class HomeViewModel(
         }
     }
 
-    private fun getHolidaysByYear(year: String, isPrevious: Boolean = false, isNext: Boolean = false) {
+    private fun getHolidaysByYear(
+        year: String,
+        loadTarget: HolidayLoadTarget = HolidayLoadTarget.Initial
+    ) {
         viewModelScope.launch {
             when (val response = repository.getHolidaysByYear(year)) {
                 is Response.Error -> {
@@ -55,19 +82,26 @@ class HomeViewModel(
                 }
 
                 is Response.Success<List<PublicHolidayModel>> -> {
+                    val data = response.data
+
+                    if (data.isNotEmpty() && loadTarget is HolidayLoadTarget.Initial) {
+                        setTodayHoliday(response.data)
+                    }
+
+                    if (_state.value.nextHoliday == null) {
+                        setNextHoliday(response.data)
+                    }
+
+                    val newYears = data.map { it.date.year }.toSet()
+                    val holidaysData = when(loadTarget) {
+                        is HolidayLoadTarget.Initial -> data
+                        is HolidayLoadTarget.PreviousYear -> data + _state.value.holidays
+                        is HolidayLoadTarget.NextYear -> _state.value.holidays + data
+                    }
                     _state.update { currentState ->
-                        if(response.data.isNotEmpty() && _state.value.todayHoliday == null) {
-                            setTodayHoliday()
-                        }
-                        val newYears = response.data.map { LocalDate.parse(it.date).year }.toSet()
-                        val holidaysData = when {
-                            isPrevious -> response.data + _state.value.holidays
-                            isNext -> _state.value.holidays + response.data
-                            else -> response.data
-                        }
                         currentState.copy(
                             holidays = holidaysData,
-                            loadedYears = _state.value.loadedYears + newYears,
+                            loadedYears = currentState.loadedYears + newYears,
                             isLoadingHolidays = false
                         )
                     }
@@ -76,58 +110,8 @@ class HomeViewModel(
         }
     }
 
-    private fun getNextHoliday() {
-        viewModelScope.launch {
-            when (val response = repository.getNextPublicHoliday()) {
-                is Response.Error -> {
-                    _state.update { currentState ->
-                        currentState.copy(
-                            error = response.message,
-                            isLoadingNextHoliday = false
-                        )
-                    }
-                }
-
-                is Response.Success<PublicHolidayModel> -> {
-                    _state.update { currentState ->
-                        currentState.copy(
-                            nextHoliday = response.data,
-                            isLoadingNextHoliday = false
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getIsTodayHoliday() {
-        viewModelScope.launch {
-            when (val response = repository.isTodayHoliday()) {
-                is Response.Error -> {
-                    _state.update { currentState ->
-                        currentState.copy(
-                            error = response.message,
-                            isLoadingTodayHoliday = false
-                        )
-                    }
-                }
-
-                is Response.Success<Boolean> -> {
-                    if(response.data && _state.value.holidays.isNotEmpty()) {
-                        setTodayHoliday()
-                    }
-                    _state.update { currentState ->
-                        currentState.copy(
-                            isLoadingTodayHoliday = false
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setTodayHoliday() {
-        val todayHoliday = _state.value.holidays.find { it.date == LocalDate.now().toString() }
+    private fun setTodayHoliday(holidays: List<PublicHolidayModel>) {
+        val todayHoliday = holidays.find { it.date == LocalDate.now() }
         todayHoliday?.let { holiday ->
             _state.update { currentState ->
                 currentState.copy(
@@ -137,46 +121,52 @@ class HomeViewModel(
         }
     }
 
-    fun setDataLoaded() {
+    private fun setNextHoliday(holidays: List<PublicHolidayModel>) {
+        val today = LocalDate.now()
+        val nextHoliday = holidays.firstOrNull { it.date.isAfter(today) }
         _state.update { currentState ->
             currentState.copy(
-                isDataLoaded = true
+                nextHoliday = nextHoliday
             )
         }
     }
 
     fun previousMonth() {
         val currentMonthUpdated = _state.value.currentMonth.minusMonths(1)
-
-        _state.update { currentState ->
-            currentState.copy(currentMonth = currentMonthUpdated)
-        }
-
-        val shouldLoadPreviousYear = currentMonthUpdated.month.value in 1..3
-        if (shouldLoadPreviousYear) {
-            val previousYear = currentMonthUpdated.year - 1
-            if (previousYear !in _state.value.loadedYears) {
-                getHolidaysByYear(
-                    year = previousYear.toString(),
-                    isPrevious = true
-                )
-            }
-        }
+        _state.update { currentState -> currentState.copy(currentMonth = currentMonthUpdated) }
+        loadMoreHolidays(currentMonthDate = currentMonthUpdated, isGoingToPreviousMonths = true)
     }
 
     fun nextMonth() {
         val currentMonthUpdated = _state.value.currentMonth.plusMonths(1)
+        _state.update { currentState -> currentState.copy(currentMonth = currentMonthUpdated) }
+        loadMoreHolidays(currentMonthDate = currentMonthUpdated, isGoingToPreviousMonths = false)
+    }
 
-        _state.update { currentState ->
-            currentState.copy(currentMonth = currentMonthUpdated)
+    private fun loadMoreHolidays(
+        currentMonthDate: LocalDate,
+        isGoingToPreviousMonths: Boolean = false
+    ) {
+        /*
+        Load previous year holidays if user navigates to Jan, Feb, or Mar
+        Load next year holidays if user navigates to Oct, Nov, or Dec
+         */
+        val shouldLoadYear = if (isGoingToPreviousMonths) {
+            currentMonthDate.month.value in 1..3
+        } else {
+            currentMonthDate.month.value in 10..12
         }
-        val shouldLoadNextYear = currentMonthUpdated.month.value in 10..12
-        if (shouldLoadNextYear) {
-            val nextYear = currentMonthUpdated.year + 1
-            if (nextYear !in _state.value.loadedYears) {
+
+        if (shouldLoadYear) {
+            val year = if (isGoingToPreviousMonths) currentMonthDate.year - 1 else currentMonthDate.year + 1
+            if (year !in _state.value.loadedYears) {
                 getHolidaysByYear(
-                    year = nextYear.toString(),
-                    isNext = true
+                    year = year.toString(),
+                    loadTarget = if (isGoingToPreviousMonths) {
+                        HolidayLoadTarget.PreviousYear
+                    } else {
+                        HolidayLoadTarget.NextYear
+                    }
                 )
             }
         }
