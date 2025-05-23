@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,8 +50,8 @@ fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayMod
                 .background(MaterialTheme.colorScheme.primary)
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val date = LocalDate.parse(holiday.date)
-            val dayFormatted = DateUtils.formatToMonthAbbreviation(date, locale)
+            val date = holiday.date
+            val dayFormatted = DateUtils.formatToDayAbbreviation(date, locale)
             Text(
                 text = dayFormatted,
                 fontSize = 20.sp,
@@ -64,7 +65,10 @@ fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayMod
         }
         Text(
             text = if(isSpanish) holiday.localName else holiday.name,
-            fontSize = 26.sp
+            fontSize = 26.sp,
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -74,7 +78,7 @@ fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayMod
 private fun HolidayItemPreview() {
     HolidayItem(
         PublicHolidayModel(
-            date = "2025-05-05",
+            date = LocalDate.parse("2025-05-05"),
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
