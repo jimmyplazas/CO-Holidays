@@ -10,12 +10,8 @@ data class HomeState(
     val holidays: List<PublicHolidayModel> = emptyList(),
     val loadedYears: Set<Int> = emptySet(),
     val nextHoliday: PublicHolidayModel? = null,
-    val isLoadingNextHoliday: Boolean = true,
-    val isLoadingHolidays: Boolean = true,
-    val isLoadingTodayHoliday: Boolean = true,
     val todayHoliday: PublicHolidayModel? = null,
-    val lastTodayHolidayResponse: LocalDate? = null,
-    val isDataLoaded: Boolean = false,
+    val isLoadingHolidays: Boolean = true,
     val currentMonth: LocalDate = LocalDate.now(),
     val error: String? = null
 )
