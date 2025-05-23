@@ -1,63 +1,87 @@
 package dev.alejo.colombian_holidays.ui.home.components
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.alejo.colombian_holidays.ui.home.HomeState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import dev.alejo.colombian_holidays.R
+import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.compose_calendar.CalendarEvent
 import dev.alejo.compose_calendar.ComposeCalendar
 import dev.alejo.compose_calendar.util.CalendarDefaults
-import kotlinx.datetime.LocalDate
+import java.time.LocalDate
 
 @Composable
 fun CalendarScreen(
-    state: HomeState,
-    isSpanish: Boolean,
+    holidays: List<CalendarEvent<PublicHolidayModel>>,
+    currentMonth: LocalDate,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
-    val events: List<CalendarEvent> = state.holidays.map { holiday ->
-        CalendarEvent(
-            title = if (isSpanish) holiday.localName else holiday.name,
-            description = null,
-            date = LocalDate.parse(holiday.date),
-            icon = Icons.Default.Star
-        )
-    }
     ComposeCalendar(
-        events = events,
+        events = holidays,
         calendarColors = CalendarDefaults.calendarColors(
             eventBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
             eventContentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
         onDayClick = { _, _ -> },
         onPreviousMonthClick = { onPreviousMonth() },
-        onNextMonthClick = { onNextMonth() }
+        onNextMonthClick = { onNextMonth() },
+        eventIndicator = {_, _, _ ->
+            HolidayIndicator()
+        },
+        maxIndicators = CalendarDefaults.IndicatorLimit.Two
     )
 
-    val monthHolidays = state.holidays.filter {
-        val date = LocalDate.parse(it.date)
-        date.month == state.currentMonth.month && date.year == state.currentMonth.year
-    }
-    AnimatedVisibility(monthHolidays.isNotEmpty()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppDimens.Small),
-            contentPadding = PaddingValues(bottom = AppDimens.Default)
-        ) {
-            items(monthHolidays.size) { index ->
-                HolidayItem(monthHolidays[index]) {
+    val monthHolidays = holidays
+        .filter { it.data!!.date.month == currentMonth.month && it.data!!.date.year == currentMonth.year }
 
+    AnimatedContent(monthHolidays.isEmpty()) { noHolidays ->
+        if (noHolidays) {
+            Image(
+                painter = painterResource(id = R.drawable.no_holidays_img),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AppDimens.ExtraLarge),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(AppDimens.Small),
+                contentPadding = PaddingValues(bottom = AppDimens.Default)
+            ) {
+                items(monthHolidays.size) { index ->
+                    HolidayItem(monthHolidays[index].data!!) {
+
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun HolidayIndicator() {
+    Box(
+        modifier = Modifier
+            .size(AppDimens.Small)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+    )
 }
