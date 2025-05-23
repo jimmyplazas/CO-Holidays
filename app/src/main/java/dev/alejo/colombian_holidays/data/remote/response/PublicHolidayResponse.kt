@@ -3,6 +3,7 @@ package dev.alejo.colombian_holidays.data.remote.response
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 
 @Serializable
 data class PublicHolidayResponse(
@@ -15,7 +16,7 @@ data class PublicHolidayResponse(
 )
 
 fun PublicHolidayResponse.toDomain(): PublicHolidayModel = PublicHolidayModel(
-    date = date,
+    date = LocalDate.parse(date),
     localName = localName,
     name = name,
     global = global,
