@@ -46,18 +46,20 @@ import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import dev.alejo.colombian_holidays.ui.home.components.CalendarScreen
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
+import dev.alejo.compose_calendar.CalendarEvent
+import java.time.LocalDate
 import java.util.Locale
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(state: HomeState, onPreviousMonth: () -> Unit, onNextMonth: () -> Unit) {
+fun HomeScreen(
+    state: HomeState,
+    events: List<CalendarEvent<PublicHolidayModel>>,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
     val scaffoldState = rememberBottomSheetScaffoldState()
-//    val scaffoldState = rememberBottomSheetScaffoldState(
-//        rememberStandardBottomSheetState(
-//            initialValue = SheetValue.Expanded
-//        )
-//    )
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val maxSheetHeight = screenHeight - AppDimens.PeakSheetTopMargin
     val locale = remember { Locale.getDefault() }
@@ -71,8 +73,9 @@ fun HomeScreen(state: HomeState, onPreviousMonth: () -> Unit, onNextMonth: () ->
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = maxSheetHeight),
-                    state = state,
-                    isSpanish = isSpanish,
+                    holidays = events,
+                    isLoading = state.isLoadingHolidays,
+                    currentMonth = state.currentMonth,
                     onPreviousMonth = { onPreviousMonth() },
                     onNextMonth = { onNextMonth() }
                 )
@@ -98,11 +101,11 @@ fun HomeScreen(state: HomeState, onPreviousMonth: () -> Unit, onNextMonth: () ->
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.alpha(0.35f)
                 )
-                AnimatedContent(state.isDataLoaded) { isDataLoaded ->
-                    if (isDataLoaded) {
-                        MainContent(state, isSpanish)
-                    } else {
+                AnimatedContent(state.isLoadingHolidays) { isLoading ->
+                    if (isLoading) {
                         CircularProgressIndicator()
+                    } else {
+                        MainContent(state, isSpanish)
                     }
                 }
             }
@@ -161,8 +164,9 @@ fun MainContent(state: HomeState, isSpanish: Boolean) {
 @Composable
 fun BottomSheetContent(
     modifier: Modifier,
-    state: HomeState,
-    isSpanish: Boolean,
+    holidays: List<CalendarEvent<PublicHolidayModel>>,
+    isLoading: Boolean,
+    currentMonth: LocalDate,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
@@ -171,10 +175,23 @@ fun BottomSheetContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = AppDimens.Default),
-            verticalArrangement = Arrangement.spacedBy(AppDimens.Default)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BottomSheetTop()
-            CalendarScreen(state, isSpanish, onPreviousMonth, onNextMonth)
+            AnimatedContent(isLoading) { loading ->
+                if (loading) {
+                    CircularProgressIndicator()
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = AppDimens.Default),
+                        verticalArrangement = Arrangement.spacedBy(AppDimens.Default),
+                    ) {
+                        BottomSheetTop()
+                        CalendarScreen(holidays, currentMonth, onPreviousMonth, onNextMonth)
+                    }
+                }
+            }
         }
     }
 }
@@ -209,7 +226,7 @@ fun BottomSheetTop() {
 fun HomeScreenPreview() {
     val holidays = listOf(
         PublicHolidayModel(
-            date = "2025-05-05",
+            date = LocalDate.parse("2025-05-05"),
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -217,7 +234,7 @@ fun HomeScreenPreview() {
             types = listOf("Public")
         ),
         PublicHolidayModel(
-            date = "2025-04-01",
+            date = LocalDate.parse("2025-04-01"),
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -225,7 +242,7 @@ fun HomeScreenPreview() {
             types = listOf("Public")
         ),
         PublicHolidayModel(
-            date = "2025-07-25",
+            date = LocalDate.parse("2025-07-25"),
             name = "New Year",
             localName = "Año Nuevo",
             global = true,
@@ -237,19 +254,16 @@ fun HomeScreenPreview() {
         state = HomeState(
             holidays = holidays,
             nextHoliday = PublicHolidayModel(
-                date = "2025-01-01",
+                date = LocalDate.parse("2025-01-01"),
                 name = "New Year",
                 localName = "Año Nuevo",
                 global = true,
                 launchYear = 2025,
                 types = listOf("Public")
             ),
-            isLoadingNextHoliday = false,
             isLoadingHolidays = false,
-            isLoadingTodayHoliday = false,
-            isDataLoaded = true,
             todayHoliday = PublicHolidayModel(
-                date = "2025-05-20",
+                date = LocalDate.parse("2025-05-20"),
                 name = "New Year",
                 localName = "Año Nuevo",
                 global = true,
@@ -257,6 +271,9 @@ fun HomeScreenPreview() {
                 types = listOf("Public")
             )
         ),
+        events = holidays.map {
+            CalendarEvent(it, it.date)
+        },
         onPreviousMonth = {},
         onNextMonth = {}
     )
