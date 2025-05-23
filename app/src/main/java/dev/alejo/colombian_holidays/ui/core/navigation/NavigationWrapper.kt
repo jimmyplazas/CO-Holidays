@@ -1,7 +1,6 @@
 package dev.alejo.colombian_holidays.ui.core.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
@@ -17,15 +16,11 @@ fun NavigationWrapper(navController: NavHostController) {
         composable(Routes.Home.route) {
             val viewModel = koinViewModel<HomeViewModel>()
             val state by viewModel.state.collectAsState()
-
-            LaunchedEffect(state.isLoadingNextHoliday, state.isLoadingHolidays, state.isLoadingTodayHoliday) {
-                if (!state.isLoadingNextHoliday && !state.isLoadingHolidays && !state.isLoadingTodayHoliday) {
-                    viewModel.setDataLoaded()
-                }
-            }
+            val events by viewModel.events.collectAsState()
 
             HomeScreen(
                 state = state,
+                events = events,
                 onPreviousMonth = viewModel::previousMonth,
                 onNextMonth = viewModel::nextMonth
             )
