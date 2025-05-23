@@ -20,8 +20,7 @@ roomVersion = "2.6.1"
 kspVersion = "2.1.21-2.0.1"
 uiTextGoogleFonts = "1.8.1"
 googleServices = "4.4.2"
-kotlinxDatetime = "0.6.0"
-composeCalendar = "2.0.0"
+composeCalendar = "3.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,7 +61,6 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 # Google Fonts
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 # Compose Calendar
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 compose-calendar = { module = "com.github.jimmyplazas:compose-calendar", version.ref = "composeCalendar" }
 
 [plugins]
