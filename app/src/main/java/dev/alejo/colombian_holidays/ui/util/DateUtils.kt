@@ -6,6 +6,7 @@ import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 object DateUtils {
@@ -36,5 +37,10 @@ object DateUtils {
     fun formatToDayAbbreviation(date: LocalDate, locale: Locale): String {
         val formatter = DateTimeFormatter.ofPattern("EEE", locale)
         return formatter.format(date).replaceFirstChar { it.uppercase(locale) }
+    }
+
+    fun formatToMonthName(date: LocalDate, locale: Locale): String {
+        return date.month.getDisplayName(TextStyle.FULL, locale)
+            .replaceFirstChar { it.uppercase(locale) }
     }
 }
