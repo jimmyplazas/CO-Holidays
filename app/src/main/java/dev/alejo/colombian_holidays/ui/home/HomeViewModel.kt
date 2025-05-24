@@ -26,12 +26,6 @@ class HomeViewModel(
     private val imagesProvider: ImagesProvider
 ) : ViewModel() {
 
-    sealed class HolidayLoadTarget {
-        data object Initial : HolidayLoadTarget()
-        data object PreviousYear : HolidayLoadTarget()
-        data object NextYear : HolidayLoadTarget()
-    }
-
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
     val events: StateFlow<List<CalendarEvent<PublicHolidayModel>>> = _state
@@ -68,7 +62,7 @@ class HomeViewModel(
 
     private fun getHolidaysByYear(
         year: String,
-        loadTarget: HolidayLoadTarget = HolidayLoadTarget.Initial
+        loadTarget: HolidaysLoadTarget = HolidaysLoadTarget.Initial
     ) {
         viewModelScope.launch {
             when (val response = repository.getHolidaysByYear(year)) {
@@ -84,7 +78,7 @@ class HomeViewModel(
                 is Response.Success<List<PublicHolidayModel>> -> {
                     val data = response.data
 
-                    if (data.isNotEmpty() && loadTarget is HolidayLoadTarget.Initial) {
+                    if (data.isNotEmpty() && loadTarget is HolidaysLoadTarget.Initial) {
                         setTodayHoliday(response.data)
                     }
 
@@ -93,10 +87,10 @@ class HomeViewModel(
                     }
 
                     val newYears = data.map { it.date.year }.toSet()
-                    val holidaysData = when(loadTarget) {
-                        is HolidayLoadTarget.Initial -> data
-                        is HolidayLoadTarget.PreviousYear -> data + _state.value.holidays
-                        is HolidayLoadTarget.NextYear -> _state.value.holidays + data
+                    val holidaysData = when (loadTarget) {
+                        is HolidaysLoadTarget.Initial -> data
+                        is HolidaysLoadTarget.PreviousYear -> data + _state.value.holidays
+                        is HolidaysLoadTarget.NextYear -> _state.value.holidays + data
                     }
                     _state.update { currentState ->
                         currentState.copy(
@@ -131,45 +125,49 @@ class HomeViewModel(
         }
     }
 
-    fun previousMonth() {
-        val currentMonthUpdated = _state.value.currentMonth.minusMonths(1)
-        _state.update { currentState -> currentState.copy(currentMonth = currentMonthUpdated) }
-        loadMoreHolidays(currentMonthDate = currentMonthUpdated, isGoingToPreviousMonths = true)
-    }
+    fun onHolidaysAction(holidaysAction: HolidaysAction) {
+        val currentDate = _state.value.currentYearMonth.adjustWith(holidaysAction)
+        _state.update { it.copy(currentYearMonth = currentDate) }
 
-    fun nextMonth() {
-        val currentMonthUpdated = _state.value.currentMonth.plusMonths(1)
-        _state.update { currentState -> currentState.copy(currentMonth = currentMonthUpdated) }
-        loadMoreHolidays(currentMonthDate = currentMonthUpdated, isGoingToPreviousMonths = false)
-    }
-
-    private fun loadMoreHolidays(
-        currentMonthDate: LocalDate,
-        isGoingToPreviousMonths: Boolean = false
-    ) {
-        /*
-        Load previous year holidays if user navigates to Jan, Feb, or Mar
-        Load next year holidays if user navigates to Oct, Nov, or Dec
-         */
-        val shouldLoadYear = if (isGoingToPreviousMonths) {
-            currentMonthDate.month.value in 1..3
-        } else {
-            currentMonthDate.month.value in 10..12
-        }
-
-        if (shouldLoadYear) {
-            val year = if (isGoingToPreviousMonths) currentMonthDate.year - 1 else currentMonthDate.year + 1
+        if (shouldLoadYear(currentDate, holidaysAction)) {
+            val year = getTargetYear(currentDate, holidaysAction)
             if (year !in _state.value.loadedYears) {
+                _state.update { it.copy(isLoadingHolidays = true) }
                 getHolidaysByYear(
                     year = year.toString(),
-                    loadTarget = if (isGoingToPreviousMonths) {
-                        HolidayLoadTarget.PreviousYear
-                    } else {
-                        HolidayLoadTarget.NextYear
-                    }
+                    loadTarget = holidaysAction.toLoadTarget()
                 )
             }
         }
     }
 
+    private fun LocalDate.adjustWith(action: HolidaysAction): LocalDate = when (action) {
+        HolidaysAction.NextMonth -> plusMonths(1)
+        HolidaysAction.PreviousMonth -> minusMonths(1)
+        HolidaysAction.NextYear -> plusYears(1)
+        HolidaysAction.PreviousYear -> minusYears(1)
+    }
+
+    private fun shouldLoadYear(date: LocalDate, action: HolidaysAction): Boolean = when (action) {
+        HolidaysAction.PreviousMonth -> date.monthValue in 1..3
+        HolidaysAction.NextMonth -> date.monthValue in 10..12
+        HolidaysAction.PreviousYear, HolidaysAction.NextYear -> true
+    }
+
+    private fun getTargetYear(date: LocalDate, action: HolidaysAction): Int = when (action) {
+        HolidaysAction.PreviousYear, HolidaysAction.NextYear -> date.year
+        HolidaysAction.PreviousMonth -> date.year - 1
+        HolidaysAction.NextMonth -> date.year + 1
+    }
+
+    fun onViewLayoutClick() {
+        _state.update {
+            it.copy(
+                viewLayout = when (it.viewLayout) {
+                    ViewLayout.Calendar -> ViewLayout.List
+                    ViewLayout.List -> ViewLayout.Calendar
+                }
+            )
+        }
+    }
 }
