@@ -13,14 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -29,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -43,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.alejo.colombian_holidays.R
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
+import dev.alejo.colombian_holidays.ui.home.components.BottomSheetTop
 import dev.alejo.colombian_holidays.ui.home.components.CalendarScreen
+import dev.alejo.colombian_holidays.ui.home.components.ListBottomNavigation
+import dev.alejo.colombian_holidays.ui.home.components.ListScreen
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
 import dev.alejo.compose_calendar.CalendarEvent
@@ -56,8 +53,8 @@ import java.util.Locale
 fun HomeScreen(
     state: HomeState,
     events: List<CalendarEvent<PublicHolidayModel>>,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
+    onViewLayoutClick: () -> Unit,
+    onHolidaysAction: (HolidaysAction) -> Unit,
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -75,9 +72,10 @@ fun HomeScreen(
                         .heightIn(max = maxSheetHeight),
                     holidays = events,
                     isLoading = state.isLoadingHolidays,
-                    currentMonth = state.currentMonth,
-                    onPreviousMonth = { onPreviousMonth() },
-                    onNextMonth = { onNextMonth() }
+                    viewLayout = state.viewLayout,
+                    onViewLayoutClick = onViewLayoutClick,
+                    currentYearMonth = state.currentYearMonth,
+                    onHolidaysAction = { action -> onHolidaysAction(action) }
                 )
             },
             sheetPeekHeight = AppDimens.DefaultPeekHeight
@@ -165,58 +163,62 @@ fun MainContent(state: HomeState, isSpanish: Boolean) {
 fun BottomSheetContent(
     modifier: Modifier,
     holidays: List<CalendarEvent<PublicHolidayModel>>,
+    currentYearMonth: LocalDate,
     isLoading: Boolean,
-    currentMonth: LocalDate,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
+    viewLayout: ViewLayout,
+    onViewLayoutClick: () -> Unit,
+    onHolidaysAction: (HolidaysAction) -> Unit
 ) {
-    Box(modifier = modifier) {
+    Box(modifier = modifier.padding(horizontal = AppDimens.Default)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = AppDimens.Default),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(AppDimens.Small)
         ) {
+            BottomSheetTop(
+                modifier = Modifier.fillMaxWidth(),
+                viewLayout = viewLayout
+            ) { onViewLayoutClick() }
+
             AnimatedContent(isLoading) { loading ->
                 if (loading) {
-                    CircularProgressIndicator()
+                    Box(Modifier.fillMaxSize()) {
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    }
                 } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = AppDimens.Default),
-                        verticalArrangement = Arrangement.spacedBy(AppDimens.Default),
-                    ) {
-                        BottomSheetTop()
-                        CalendarScreen(holidays, currentMonth, onPreviousMonth, onNextMonth)
+                    AnimatedContent(viewLayout) { layout ->
+                        when (layout) {
+                            ViewLayout.Calendar -> {
+                                CalendarScreen(
+                                    holidays = holidays,
+                                    currentMonth = currentYearMonth,
+                                    onHolidaysAction = { action -> onHolidaysAction(action) }
+                                )
+                            }
+
+                            ViewLayout.List -> {
+                                ListScreen(
+                                    holidays = holidays,
+                                    currentYearMonth = currentYearMonth
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
 
-@Composable
-fun BottomSheetTop() {
-    Box(Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.all_holidays),
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
-        )
-        IconButton(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .clip(RoundedCornerShape(AppDimens.Small)),
-            onClick = {}
-        ) {
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
+        AnimatedContent(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            targetState = viewLayout
+        ) { layout ->
+            if (layout is ViewLayout.List) {
+                ListBottomNavigation(
+                    modifier = Modifier
+                        .padding(bottom = AppDimens.ListBottomNavigationPadding),
+                    year = currentYearMonth.year.toString(),
+                    onHolidaysAction = { action -> onHolidaysAction(action) }
+                )
+            }
         }
     }
 }
@@ -269,12 +271,13 @@ fun HomeScreenPreview() {
                 global = true,
                 launchYear = 2025,
                 types = listOf("Public")
-            )
+            ),
+            viewLayout = ViewLayout.List
         ),
         events = holidays.map {
             CalendarEvent(it, it.date)
         },
-        onPreviousMonth = {},
-        onNextMonth = {}
+        onViewLayoutClick = {},
+        onHolidaysAction = {}
     )
 }
