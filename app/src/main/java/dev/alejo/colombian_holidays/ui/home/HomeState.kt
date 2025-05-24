@@ -12,6 +12,7 @@ data class HomeState(
     val nextHoliday: PublicHolidayModel? = null,
     val todayHoliday: PublicHolidayModel? = null,
     val isLoadingHolidays: Boolean = true,
-    val currentMonth: LocalDate = LocalDate.now(),
+    val currentYearMonth: LocalDate = LocalDate.now(),
+    val viewLayout: ViewLayout = ViewLayout.List,
     val error: String? = null
 )
