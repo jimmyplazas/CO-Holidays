@@ -21,8 +21,8 @@ fun NavigationWrapper(navController: NavHostController) {
             HomeScreen(
                 state = state,
                 events = events,
-                onPreviousMonth = viewModel::previousMonth,
-                onNextMonth = viewModel::nextMonth
+                onViewLayoutClick = viewModel::onViewLayoutClick,
+                onHolidaysAction = viewModel::onHolidaysAction
             )
         }
     }
