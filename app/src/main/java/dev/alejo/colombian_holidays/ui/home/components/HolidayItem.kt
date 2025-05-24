@@ -19,13 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.alejo.colombian_holidays.domain.model.PublicHolidayModel
 import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
-import java.time.LocalDate
 import java.util.Locale
 
 @Composable
@@ -65,26 +63,10 @@ fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayMod
         }
         Text(
             text = if(isSpanish) holiday.localName else holiday.name,
-            fontSize = 26.sp,
+            fontSize = 22.sp,
             modifier = Modifier.fillMaxWidth(),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HolidayItemPreview() {
-    HolidayItem(
-        PublicHolidayModel(
-            date = LocalDate.parse("2025-05-05"),
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
-        ),
-        onClick = {}
-    )
 }
