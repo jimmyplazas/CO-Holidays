@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "794211645502",
+    "project_id": "holidays-8bb84",
+    "storage_bucket": "holidays-8bb84.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794211645502:android:80bff108087740c356f96f",
+        "android_client_info": {
+          "package_name": "dev.alejo.colombian_holidays"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlqAC-qqr-U4lc03_ML9dTCf52-QAxOKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
