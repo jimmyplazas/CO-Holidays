@@ -42,7 +42,7 @@ fun BottomSheetTop(modifier: Modifier, viewLayout: ViewLayout, onViewLayoutClick
                 when (layout) {
                     ViewLayout.Calendar -> {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_menu),
+                            painter = painterResource(id = R.drawable.ic_list),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
