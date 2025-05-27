@@ -1,6 +1,9 @@
 package dev.alejo.colombian_holidays.ui.home.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,16 +33,20 @@ import dev.alejo.compose_calendar.ComposeCalendar
 import dev.alejo.compose_calendar.util.CalendarDefaults
 import java.time.LocalDate
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun CalendarScreen(
+fun SharedTransitionScope.CalendarScreen(
     holidays: List<CalendarEvent<PublicHolidayModel>>,
     currentMonth: LocalDate,
-    onHolidaysAction: (HolidaysAction) -> Unit
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onHolidaysAction: (HolidaysAction) -> Unit,
+    onHolidaySelected: (PublicHolidayModel) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = AppDimens.Default),
+            .padding(horizontal = AppDimens.Default)
+            .padding(top = AppDimens.Default),
         verticalArrangement = Arrangement.spacedBy(AppDimens.Default),
     ) {
         val monthHolidays = holidays
@@ -58,6 +65,7 @@ fun CalendarScreen(
             eventIndicator = { _, _, _ ->
                 HolidayIndicator()
             },
+            isContentClickable = false,
             maxIndicators = CalendarDefaults.IndicatorLimit.Two
         )
 
@@ -79,9 +87,10 @@ fun CalendarScreen(
                     contentPadding = PaddingValues(bottom = AppDimens.Default)
                 ) {
                     items(monthHolidays.size) { index ->
-                        HolidayItem(monthHolidays[index].data!!) {
-
-                        }
+                        HolidayItem(
+                            holiday = monthHolidays[index].data!!,
+                            animatedVisibilityScope = animatedVisibilityScope
+                        ) { onHolidaySelected(it) }
                     }
                 }
             }
@@ -103,9 +112,10 @@ fun HolidayIndicator() {
 @Preview(showBackground = true)
 @Composable
 private fun CalendarScreenPrev() {
-    CalendarScreen(
-        holidays = emptyList(),
-        currentMonth = LocalDate.now(),
-        onHolidaysAction = {}
-    )
+//    CalendarScreen(
+//        holidays = emptyList(),
+//        currentMonth = LocalDate.now(),
+//        onHolidaysAction = {},
+//        onHolidaySelected = {}
+//    )
 }
