@@ -16,8 +16,8 @@ android {
         applicationId = "dev.alejo.colombian_holidays"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.logging)
+    // Animation
+    implementation(libs.androidx.compose.animation)
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

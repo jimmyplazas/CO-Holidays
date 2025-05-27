@@ -43,4 +43,25 @@ object DateUtils {
         return date.month.getDisplayName(TextStyle.FULL, locale)
             .replaceFirstChar { it.uppercase(locale) }
     }
+
+    fun formatDateLocalized(date: LocalDate, locale: Locale = Locale.getDefault()): String {
+        val pattern = when (locale.language) {
+            "es" -> "d 'de' MMMM 'de' yyyy"
+            else -> "MMMM d, yyyy"
+        }
+
+        val formatter = DateTimeFormatter.ofPattern(pattern, locale)
+        return date.format(formatter)
+    }
+
+    fun wordToNumber(charSequence: String): Int {
+        var sum = 0
+        charSequence.forEach { sum += it.uppercaseChar() - 'A' + 1 }
+        return sum
+    }
+
+    fun isFutureDate(date: LocalDate): Boolean {
+        val today = LocalDate.now()
+        return date.isAfter(today)
+    }
 }

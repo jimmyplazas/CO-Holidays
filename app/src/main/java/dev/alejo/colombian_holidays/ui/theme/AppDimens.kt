@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.dp
 
 object AppDimens {
     val None = 0.dp
-    val ExtraSmall = 4.dp
     val Small = 8.dp
     val Default = 16.dp
     val Large = 24.dp
@@ -15,4 +14,5 @@ object AppDimens {
     val ListBottomNavigationPadding = 32.dp
     val DefaultPeekHeight = 120.dp
     val PeakSheetTopMargin = 90.dp
+    val HolidayIconDetailSize = 100.dp
 }

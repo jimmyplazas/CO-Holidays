@@ -1,8 +1,13 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.alejo.colombian_holidays.ui.home
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,11 +55,13 @@ import java.util.Locale
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun SharedTransitionScope.HomeScreen(
     state: HomeState,
     events: List<CalendarEvent<PublicHolidayModel>>,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onViewLayoutClick: () -> Unit,
     onHolidaysAction: (HolidaysAction) -> Unit,
+    onHolidaySelected: (PublicHolidayModel) -> Unit,
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -73,9 +80,11 @@ fun HomeScreen(
                     holidays = events,
                     isLoading = state.isLoadingHolidays,
                     viewLayout = state.viewLayout,
+                    animatedVisibilityScope = animatedVisibilityScope,
                     onViewLayoutClick = onViewLayoutClick,
                     currentYearMonth = state.currentYearMonth,
-                    onHolidaysAction = { action -> onHolidaysAction(action) }
+                    onHolidaysAction = { action -> onHolidaysAction(action) },
+                    onHolidaySelected = onHolidaySelected
                 )
             },
             sheetPeekHeight = AppDimens.DefaultPeekHeight
@@ -160,14 +169,16 @@ fun MainContent(state: HomeState, isSpanish: Boolean) {
 }
 
 @Composable
-fun BottomSheetContent(
+fun SharedTransitionScope.BottomSheetContent(
     modifier: Modifier,
     holidays: List<CalendarEvent<PublicHolidayModel>>,
     currentYearMonth: LocalDate,
     isLoading: Boolean,
     viewLayout: ViewLayout,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onViewLayoutClick: () -> Unit,
-    onHolidaysAction: (HolidaysAction) -> Unit
+    onHolidaysAction: (HolidaysAction) -> Unit,
+    onHolidaySelected: (PublicHolidayModel) -> Unit
 ) {
     Box(modifier = modifier.padding(horizontal = AppDimens.Default)) {
         Column(
@@ -191,14 +202,18 @@ fun BottomSheetContent(
                                 CalendarScreen(
                                     holidays = holidays,
                                     currentMonth = currentYearMonth,
-                                    onHolidaysAction = { action -> onHolidaysAction(action) }
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    onHolidaysAction = { action -> onHolidaysAction(action) },
+                                    onHolidaySelected = onHolidaySelected
                                 )
                             }
 
                             ViewLayout.List -> {
                                 ListScreen(
                                     holidays = holidays,
-                                    currentYearMonth = currentYearMonth
+                                    currentYearMonth = currentYearMonth,
+                                    onHolidaySelected = onHolidaySelected,
+                                    animatedVisibilityScope = animatedVisibilityScope
                                 )
                             }
                         }
@@ -226,58 +241,60 @@ fun BottomSheetContent(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    val holidays = listOf(
-        PublicHolidayModel(
-            date = LocalDate.parse("2025-05-05"),
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
-        ),
-        PublicHolidayModel(
-            date = LocalDate.parse("2025-04-01"),
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
-        ),
-        PublicHolidayModel(
-            date = LocalDate.parse("2025-07-25"),
-            name = "New Year",
-            localName = "Año Nuevo",
-            global = true,
-            launchYear = 2025,
-            types = listOf("Public")
-        )
-    )
-    HomeScreen(
-        state = HomeState(
-            holidays = holidays,
-            nextHoliday = PublicHolidayModel(
-                date = LocalDate.parse("2025-01-01"),
-                name = "New Year",
-                localName = "Año Nuevo",
-                global = true,
-                launchYear = 2025,
-                types = listOf("Public")
-            ),
-            isLoadingHolidays = false,
-            todayHoliday = PublicHolidayModel(
-                date = LocalDate.parse("2025-05-20"),
-                name = "New Year",
-                localName = "Año Nuevo",
-                global = true,
-                launchYear = 2025,
-                types = listOf("Public")
-            ),
-            viewLayout = ViewLayout.List
-        ),
-        events = holidays.map {
-            CalendarEvent(it, it.date)
-        },
-        onViewLayoutClick = {},
-        onHolidaysAction = {}
-    )
+//    val holidays = listOf(
+//        PublicHolidayModel(
+//            date = LocalDate.parse("2025-05-05"),
+//            name = "New Year",
+//            localName = "Año Nuevo",
+//            global = true,
+//            launchYear = 2025,
+//            types = listOf("Public")
+//        ),
+//        PublicHolidayModel(
+//            date = LocalDate.parse("2025-04-01"),
+//            name = "New Year",
+//            localName = "Año Nuevo",
+//            global = true,
+//            launchYear = 2025,
+//            types = listOf("Public")
+//        ),
+//        PublicHolidayModel(
+//            date = LocalDate.parse("2025-07-25"),
+//            name = "New Year",
+//            localName = "Año Nuevo",
+//            global = true,
+//            launchYear = 2025,
+//            types = listOf("Public")
+//        )
+//    )
+//    HomeScreen(
+//        state = HomeState(
+//            holidays = holidays,
+//            nextHoliday = PublicHolidayModel(
+//                date = LocalDate.parse("2025-01-01"),
+//                name = "New Year",
+//                localName = "Año Nuevo",
+//                global = true,
+//                launchYear = 2025,
+//                types = listOf("Public")
+//            ),
+//            isLoadingHolidays = false,
+//            todayHoliday = PublicHolidayModel(
+//                date = LocalDate.parse("2025-05-20"),
+//                name = "New Year",
+//                localName = "Año Nuevo",
+//                global = true,
+//                launchYear = 2025,
+//                types = listOf("Public")
+//            ),
+//            viewLayout = ViewLayout.List
+//        ),
+//        events = holidays.map {
+//            CalendarEvent(it, it.date)
+//        },
+//        onViewLayoutClick = {},
+//        onHolidaysAction = {},
+//        onHolidaySelected = {},
+//        animatedVisibilityScope =
+//    )
 }

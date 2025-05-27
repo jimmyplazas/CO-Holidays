@@ -1,5 +1,8 @@
 package dev.alejo.colombian_holidays.ui.home.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -20,10 +23,13 @@ import dev.alejo.compose_calendar.CalendarEvent
 import java.time.LocalDate
 import java.util.Locale
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ListScreen(
+fun SharedTransitionScope.ListScreen(
     holidays: List<CalendarEvent<PublicHolidayModel>>,
-    currentYearMonth: LocalDate
+    currentYearMonth: LocalDate,
+    onHolidaySelected: (PublicHolidayModel) -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val locale = remember { Locale.getDefault() }
     val groupedHolidays = holidays
@@ -47,7 +53,10 @@ fun ListScreen(
             }
 
             items(holidaysInMonth, key = { it.data!!.name }) { holiday ->
-                HolidayItem(holiday.data!!) { }
+                HolidayItem(
+                    holiday = holiday.data!!,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                ) { onHolidaySelected(it) }
             }
         }
     }
