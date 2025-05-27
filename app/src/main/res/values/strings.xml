@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name" translatable="false">ColombianHolidays</string>
-    <string name="today_is_holiday">Today is holiday</string>
-    <string name="today_is_not_holiday">Today is not holiday</string>
+    <string name="today_is_holiday">Today is a holiday</string>
+    <string name="today_is_not_holiday">Today is not a holiday</string>
     <string name="upcoming_holiday">Upcoming holiday is on</string>
     <string name="for_description">for</string>
     <string name="all_holidays">All holidays</string>
+    <string name="official_name">Official name</string>
+    <string name="since">Since</string>
+    <string name="category">Category</string>
+    <string name="notification">Notification</string>
+    <string name="notification_description">You’ll receive a notification on the holiday if this option is enabled.</string>
+    <string name="past_date">This holiday is in the past</string>
+    <string name="notification_disabled">Please turn on notifications to receive notifications</string>
 </resources>
