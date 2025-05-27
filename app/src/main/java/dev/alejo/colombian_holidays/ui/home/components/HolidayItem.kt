@@ -1,5 +1,8 @@
 package dev.alejo.colombian_holidays.ui.home.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,8 +29,13 @@ import dev.alejo.colombian_holidays.ui.theme.AppDimens
 import dev.alejo.colombian_holidays.ui.util.DateUtils
 import java.util.Locale
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayModel) -> Unit) {
+fun SharedTransitionScope.HolidayItem(
+    holiday: PublicHolidayModel,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onClick: (holiday: PublicHolidayModel) -> Unit
+) {
     val locale = Locale.getDefault()
     val isSpanish = locale.language == "es"
     Row(
@@ -61,10 +69,16 @@ fun HolidayItem(holiday: PublicHolidayModel, onClick: (holiday: PublicHolidayMod
                 fontWeight = FontWeight.ExtraBold
             )
         }
+        val holidayName = if (isSpanish) holiday.localName else holiday.name
         Text(
-            text = if(isSpanish) holiday.localName else holiday.name,
+            text = holidayName,
             fontSize = 22.sp,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "date/$holidayName"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                ),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
