@@ -5,4 +5,11 @@
     <string name="upcoming_holiday">El próximo festivo es el</string>
     <string name="for_description">y es por</string>
     <string name="all_holidays">Todos los festivos</string>
+    <string name="official_name">Nombre oficial</string>
+    <string name="since">Establecido en</string>
+    <string name="category">Categoría</string>
+    <string name="notification">Notificación</string>
+    <string name="notification_description">Recibirás una notificación el día del feriado si esta opción está activada.</string>
+    <string name="past_date">Este festivo ya pasó</string>
+    <string name="notification_disabled">Por favor activa las notificaciones para recibir notificaciones</string>
 </resources>
