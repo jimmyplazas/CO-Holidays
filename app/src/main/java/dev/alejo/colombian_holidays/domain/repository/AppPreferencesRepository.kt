@@ -5,4 +5,6 @@ import java.time.LocalDate
 interface AppPreferencesRepository {
     fun getLastTimeBackgroundChange(): LocalDate?
     fun saveBackgroundChangeDate(date: LocalDate)
+    fun getWidgetTipShown(): Boolean
+    fun saveWidgetTipShown()
 }
