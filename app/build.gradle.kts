@@ -24,7 +24,18 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        create("proguardDebug") {
+            initWith(getByName("debug"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,9 +52,12 @@ android {
     buildFeatures {
         compose = true
     }
-//    composeOptions {
-//        kotlinCompilerExtensionVersion = "1.5.15"
-//    }
+
+    // Upload mapping.txt automatically to Firebase Crashlytics when a
+    // new release version is generated
+    firebaseCrashlytics {
+        mappingFileUploadEnabled = true
+    }
 }
 
 dependencies {
