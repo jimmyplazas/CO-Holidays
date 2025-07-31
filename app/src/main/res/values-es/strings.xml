@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Festivos Colombia</string>
+    <string name="widget_description">Consulta rápida del próximo festivo colombiano desde la pantalla de inicio</string>
     <string name="today_is_holiday">Hoy es festivo</string>
     <string name="today_is_not_holiday">Hoy no es festivo</string>
     <string name="upcoming_holiday">El próximo festivo es el</string>
@@ -12,4 +14,12 @@
     <string name="notification_description">Recibirás una notificación el día del feriado si esta opción está activada.</string>
     <string name="past_date">Este festivo ya pasó</string>
     <string name="notification_disabled">Por favor activa las notificaciones para recibir notificaciones</string>
+    <string name="unexpected_error">Error inesperado</string>
+    <string name="widget_dialog_title">🎉 Pon el widget y enterate fácil de los festivos</string>
+    <string name="widget_dialog_description">
+        Agrega el widget a tu pantalla de inicio y mira si hoy es festivo o cuándo es el próximo, sin abrir la app.
+        \n\n
+        Solo mantén presionado un espacio vacío en tu pantalla de inicio, toca “Widgets” y busca Festivos Colombia. ¡Así de fácil!
+    </string>
+    <string name="understood">Entendido</string>
 </resources>
