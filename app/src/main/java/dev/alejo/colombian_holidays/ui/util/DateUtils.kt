@@ -1,5 +1,6 @@
 package dev.alejo.colombian_holidays.ui.util
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import dev.alejo.colombian_holidays.R
@@ -30,6 +31,29 @@ object DateUtils {
                 )
 
                 "${stringResource(R.string.upcoming_holiday)} $formattedDate ${stringResource(R.string.for_description)} ${nextHoliday.name}"
+            }
+        }
+    }
+
+    fun getNextHolidayMessage(context: Context, nextHoliday: PublicHolidayModel): String {
+        val locale = Locale.getDefault()
+        val date = nextHoliday.date
+
+        return when (locale.language) {
+            "es" -> {
+                val formattedDate = date.format(
+                    DateTimeFormatter.ofPattern("EEEE, d 'de' MMM", Locale("es"))
+                )
+
+                "${context.getString(R.string.upcoming_holiday)} $formattedDate ${context.getString(R.string.for_description)} ${nextHoliday.localName}"
+            }
+
+            else -> {
+                val formattedDate = date.format(
+                    DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.ENGLISH)
+                )
+
+                "${context.getString(R.string.upcoming_holiday)} $formattedDate ${context.getString(R.string.for_description)} ${nextHoliday.name}"
             }
         }
     }

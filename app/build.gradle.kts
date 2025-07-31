@@ -16,15 +16,26 @@ android {
         applicationId = "dev.alejo.colombian_holidays"
         minSdk = 29
         targetSdk = 35
-        versionCode = 4
-        versionName = "2.0.0"
+        versionCode = 5
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        create("proguardDebug") {
+            initWith(getByName("debug"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -40,6 +51,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    // Upload mapping.txt automatically to Firebase Crashlytics when a
+    // new release version is generated
+    firebaseCrashlytics {
+        mappingFileUploadEnabled = true
     }
 }
 
@@ -75,6 +92,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room)
+    implementation(libs.androidx.work.runtime.ktx)
     ksp(libs.room.compiler)
     // Google Fonts
     implementation(libs.androidx.ui.text.google.fonts)
@@ -83,6 +101,9 @@ dependencies {
     // In-App Update
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
+    // Glance
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
