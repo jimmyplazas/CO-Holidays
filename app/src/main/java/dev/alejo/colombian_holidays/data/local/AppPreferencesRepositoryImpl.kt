@@ -27,4 +27,13 @@ class AppPreferencesRepositoryImpl(
             )
         }
     }
+
+    override fun getWidgetTipShown(): Boolean = sharedPreferences
+        .getBoolean(AppPreferencesKeys.WIDGET_TIP_SHOWN, false)
+
+    override fun saveWidgetTipShown() {
+        sharedPreferences.edit {
+            putBoolean(AppPreferencesKeys.WIDGET_TIP_SHOWN, true)
+        }
+    }
 }
