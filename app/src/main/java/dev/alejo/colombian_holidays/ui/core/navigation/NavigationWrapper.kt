@@ -3,8 +3,12 @@ package dev.alejo.colombian_holidays.ui.core.navigation
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +18,7 @@ import dev.alejo.colombian_holidays.ui.detail.DetailScreen
 import dev.alejo.colombian_holidays.ui.detail.DetailViewModel
 import dev.alejo.colombian_holidays.ui.home.HomeScreen
 import dev.alejo.colombian_holidays.ui.home.HomeViewModel
+import dev.alejo.colombian_holidays.ui.home.components.AppAlertDialog
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
 
@@ -26,6 +31,21 @@ fun NavigationWrapper(navController: NavHostController) {
                 val viewModel = koinViewModel<HomeViewModel>()
                 val state by viewModel.state.collectAsState()
                 val events by viewModel.events.collectAsState()
+
+                var showWidgetDialog by rememberSaveable { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    if (!viewModel.widgetTipShown()) {
+                        showWidgetDialog = true
+                    }
+                }
+
+                if (showWidgetDialog) {
+                    AppAlertDialog {
+                        viewModel.setWidgetTipShown()
+                        showWidgetDialog = false
+                    }
+                }
 
                 HomeScreen(
                     state = state,
