@@ -173,5 +173,7 @@ class HomeViewModel(
 
     fun widgetTipShown(): Boolean = appPreferencesRepository.getWidgetTipShown()
 
-    fun setWidgetTipShown() = appPreferencesRepository.saveWidgetTipShown()
+    fun setWidgetTipShown() {
+        appPreferencesRepository.saveWidgetTipShown()
+    }
 }
