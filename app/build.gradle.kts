@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.logging)
+    implementation(libs.ktor.client.okhttp)
     // Animation
     implementation(libs.androidx.compose.animation)
     // Firebase
