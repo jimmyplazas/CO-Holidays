@@ -9,5 +9,5 @@ private const val COLOMBIA_CODE = "CO"
 
 class ApiService(private val client: HttpClient) {
     suspend fun getHolidaysByYear(year: String): List<PublicHolidayResponse> = client
-        .get("PublicHolidays/${year}/$COLOMBIA_CODE").body()
+        .get("api/v3/PublicHolidays/${year}/$COLOMBIA_CODE").body()
 }
