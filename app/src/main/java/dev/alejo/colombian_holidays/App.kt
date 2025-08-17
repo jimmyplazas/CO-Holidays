@@ -12,7 +12,7 @@ import org.koin.core.context.startKoin
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        WidgetUpdateScheduler.scheduleDailyUpdate(this)
+        WidgetUpdateScheduler.start(this)
         startKoin {
             androidLogger()
             androidContext(this@App)

@@ -11,6 +11,7 @@ class WidgetUpdateWorker(
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         AppWidget().updateAll(applicationContext)
+        WidgetUpdateScheduler.scheduleNextUpdate(applicationContext)
         return Result.success()
     }
 }
